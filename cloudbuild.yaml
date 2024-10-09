@@ -1,0 +1,29 @@
+steps:
+  # Step 1: Build the Docker Image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [ 'build', '-t', 'us-central1-docker.pkg.dev/node101-438110/node-jenkins/my-build:prod1', '.' ]
+
+  # Step 2: Push the image to the Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [ 'push', 'us-central1-docker.pkg.dev/node101-438110/node-jenkins/my-build:prod1' ]
+
+  # Step 3: Deployment to Cloud Run after image is pushed
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - 'node-jenkins-service'
+      - '--image'
+      - 'us-central1-docker.pkg.dev/node101-438110/node-jenkins/my-build:prod1'
+      - '--region'
+      - 'us-central1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--port' # Add the --port flag
+      - '3000'  # The port number where your application will listen
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+serviceAccount: 195851547020-compute@developer.gserviceaccount.com
